@@ -92,7 +92,7 @@ fi
 exec "$JAVACMD" $JAVA_OPTS \
   $EXTRA_JVM_ARGUMENTS \
   -classpath "$CLASSPATH" \
-  -Dapp.name="workerBot" \
+  -Dapp.name="main" \
   -Dapp.pid="$$" \
   -Dapp.repo="$REPO" \
   -Dbasedir="$BASEDIR" \

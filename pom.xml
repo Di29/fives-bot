@@ -51,7 +51,7 @@
                 <programs>
                     <program>
                         <mainClass>Main</mainClass>
-                        <name>workerBot</name>
+                        <name>main</name>
                     </program>
                 </programs>
             </configuration>
