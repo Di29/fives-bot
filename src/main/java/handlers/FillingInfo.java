@@ -17,7 +17,8 @@ public class FillingInfo {
         BotState currentState = userCache.getUsersBotState(userId);
         SendMessage message = new SendMessage().setChatId(update.getMessage().getChatId());
         if(currentState == BotState.FILLING_INFO){
-            message.setText(BotService.getInstance().getTextByName("Имя"));
+            String text = BotService.getInstance().getTextByName("Имя");
+            message.setText(text);
             userCache.setUsersBotState(userId,BotState.ASK_NAME);
             userCache.setPreviousBotState(userId,BotState.VIDEO);
             ReplyKeyboardMarkup keyboardMarkup = setBack();

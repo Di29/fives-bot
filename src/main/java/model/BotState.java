@@ -10,6 +10,7 @@ public enum BotState {
     ASK_NUMBER,
     ASK_ADDRESS,
     PROCESS_INFO,
-    DELETE;
+    DELETE,
+    BACK;
 
 }

@@ -21,6 +21,12 @@ public class BotService {
     private static final String catUrl = "https://fivesbot3.herokuapp.com/categories/";
     private static final String serviceUrl = "https://fivesbot3.herokuapp.com/services/";
     private static final String optionUrl = "https://fivesbot3.herokuapp.com/options/";
+    private static final String subcatUrl = "https://fivesbot3.herokuapp.com/subcategories/";
+
+//    private static final String catUrl = "http://localhost:9966/categories/";
+//    private static final String serviceUrl = "http://localhost:9966/services/";
+//    private static final String optionUrl = "http://localhost:9966/options/";
+//    private static final String subcatUrl = "http://localhost:9966/subcategories/";
 
     private static volatile BotService instance;
 
@@ -90,6 +96,74 @@ public class BotService {
             return str;
         } catch (Exception e){
             return 0;
+        }
+    }
+
+    public long getSubCatIdByName(String name){
+        try{
+
+            String URL = subcatUrl + "sub/name?name=" + URLEncoder.encode(name, "UTF-8");
+            CloseableHttpClient client = HttpClientBuilder.create().setSSLHostnameVerifier(
+                    new NoopHostnameVerifier()).build();
+            HttpGet request = new HttpGet(URL);
+            CloseableHttpResponse response = client.execute(request);
+            HttpEntity ht = response.getEntity();
+            BufferedHttpEntity buf = new BufferedHttpEntity(ht);
+            String responseString = EntityUtils.toString(buf,"UTF-8");
+            JSONObject jsonObject = new JSONObject(responseString);
+            long str  = jsonObject.getLong("id");
+            return str;
+        } catch (Exception e){
+            return 0;
+        }
+    }
+
+    public List<String> getSubcatsByCatId(long id){
+        try{
+            List<String> result = new ArrayList<>();
+            String URL = subcatUrl + "cat/id/" + id;
+            CloseableHttpClient client = HttpClientBuilder.create().setSSLHostnameVerifier(
+                    new NoopHostnameVerifier()).build();
+            HttpGet request = new HttpGet(URL);
+            CloseableHttpResponse response = client.execute(request);
+            HttpEntity ht = response.getEntity();
+            BufferedHttpEntity buf = new BufferedHttpEntity(ht);
+            String responseString = EntityUtils.toString(buf,"UTF-8");
+            JSONArray jArray = (JSONArray) new JSONTokener(responseString).nextValue();
+            for(int i = 0;i<jArray.length();i++) {
+                JSONObject jObject = jArray.getJSONObject(i);
+                String str = jObject.getString("name");
+                result.add(str);
+            }
+            return result;
+
+        }catch (Exception e){
+            return null;
+        }
+    }
+
+
+    public List<String> getServicesBySubCatId(long id){
+        try{
+            List<String> result = new ArrayList<>();
+            String URL = serviceUrl + "service/subcat/id/" + id;
+            CloseableHttpClient client = HttpClientBuilder.create().setSSLHostnameVerifier(
+                    new NoopHostnameVerifier()).build();
+            HttpGet request = new HttpGet(URL);
+            CloseableHttpResponse response = client.execute(request);
+            HttpEntity ht = response.getEntity();
+            BufferedHttpEntity buf = new BufferedHttpEntity(ht);
+            String responseString = EntityUtils.toString(buf,"UTF-8");
+            JSONArray jArray = (JSONArray) new JSONTokener(responseString).nextValue();
+            for(int i = 0;i<jArray.length();i++) {
+                JSONObject jObject = jArray.getJSONObject(i);
+                String str = jObject.getString("serviceName");
+                result.add(str);
+            }
+            return result;
+
+        }catch (Exception e){
+            return new ArrayList<>();
         }
     }
 
@@ -217,6 +291,7 @@ public class BotService {
 
             List<List<String>> result = new ArrayList<>();
             String URL = "https://fivesbot3.herokuapp.com/orders/user/" + userID;
+            //String URL = "http://localhost:9966/orders/user/" + userID;
             CloseableHttpClient client = HttpClientBuilder.create().setSSLHostnameVerifier(
                     new NoopHostnameVerifier()).build();
             HttpGet request = new HttpGet(URL);
@@ -249,6 +324,7 @@ public class BotService {
     public String getTextByName(String name){
         try{
             String URL = "https://fivesbot3.herokuapp.com/texts/text/name?name=" + URLEncoder.encode(name, "UTF-8");
+            //String URL = "http://localhost:9966/texts/text/name?name=" + URLEncoder.encode(name, "UTF-8");
             CloseableHttpClient client = HttpClientBuilder.create().setSSLHostnameVerifier(
                     new NoopHostnameVerifier()).build();
             HttpGet request = new HttpGet(URL);
@@ -269,9 +345,10 @@ public class BotService {
         }
     }
 
-    public String getChats(){
+    public List<Long> getChats(){
         try{
             String URL = "https://fivesbot3.herokuapp.com/chats";
+            //String URL = "http://localhost:9966/chats";
             CloseableHttpClient client = HttpClientBuilder.create().setSSLHostnameVerifier(
                     new NoopHostnameVerifier()).build();
             HttpGet request = new HttpGet(URL);
@@ -280,15 +357,15 @@ public class BotService {
             BufferedHttpEntity buf = new BufferedHttpEntity(ht);
             String responseString = EntityUtils.toString(buf,"UTF-8");
             JSONArray jArray = (JSONArray) new JSONTokener(responseString).nextValue();
-            String str  = "";
+            List<Long> str  = new ArrayList<>();
             for(int i = 0;i<jArray.length();i++) {
                 JSONObject jObject = jArray.getJSONObject(i);
-                str = jObject.getString("chatId");
-
+                str.add(jObject.getLong("chatId"));
             }
             return str;
         } catch (Exception e){
-            return "";
+            return null;
         }
     }
 }
+

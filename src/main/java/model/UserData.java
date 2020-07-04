@@ -49,6 +49,6 @@ public class UserData {
 
     @Override
     public String toString() {
-        return "<b>Имя:</b> " + name + "\n" + "<b>Адрес:</b> " + address + "\n" + "<b>Номер:</b> " + number;
+        return "Имя: " + name + "\n" + "Адрес: " + address + "\n" + "Номер: " + number;
     }
 }

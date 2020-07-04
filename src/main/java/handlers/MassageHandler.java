@@ -1,5 +1,6 @@
 package handlers;
 
+import com.vdurmont.emoji.Emoji;
 import com.vdurmont.emoji.EmojiParser;
 import data.UserCache;
 import model.BotState;
@@ -38,28 +39,64 @@ public class MassageHandler {
         ReplyKeyboardMarkup keyboardMarkup = keyboardMarkupSettings();
         List<KeyboardRow> keyboard = new ArrayList<>();
         KeyboardRow row = new KeyboardRow();
-        message.setText(EmojiParser.parseToUnicode("Выберите одну из предоставленных выборов :arrow_down:"));
+        message.setText(EmojiParser.parseToUnicode(BotService.getInstance().getTextByName("Выбор")));
 
 
         long category_id = BotService.getInstance().getCatIdByName(message_text);
-        List<String> services = BotService.getInstance().getServicesByCatId(category_id);
-        if(category_id!=0) {
 
-            if(services!=null) {
-                for (String service : services) {
-                    row.add(service);
+        if(category_id!=0) {
+            List<String> subcategories = BotService.getInstance().getSubcatsByCatId(category_id);
+            if(subcategories!=null) {
+                for (String subcategory : subcategories) {
+                    row.add(subcategory);
                     keyboard.add(row);
                     row = new KeyboardRow();
                 }
                 row.add(EmojiParser.parseToUnicode(":house: Вернуться в меню"));
                 keyboard.add(row);
-//                for(int i = 0;i<services.size();i++){
-//                    row.add(services.get(i));
-//                    keyboard.add(row);
-//                    if(i%2==0){
-//                        row = new KeyboardRow();
-//                    }
-//                }
+
+                userCache.setUsersOrderCat(userId,message_text);
+                keyboardMarkup.setKeyboard(keyboard);
+                message.setReplyMarkup(keyboardMarkup);
+
+                return message;
+            }
+        }
+
+
+        long subcategory_id = BotService.getInstance().getSubCatIdByName(message_text);
+
+        if(subcategory_id!=0) {
+            List<String> services = BotService.getInstance().getServicesBySubCatId(subcategory_id);
+            if(services!=null) {
+                for (String service : services) {
+                    row.add(EmojiParser.parseToUnicode(service));
+                    keyboard.add(row);
+                    row = new KeyboardRow();
+                }
+                row.add(EmojiParser.parseToUnicode(":arrow_left: Назад")); //
+                userCache.setPreviousBotState(userId,BotState.BACK);
+                keyboard.add(row);
+
+                keyboardMarkup.setKeyboard(keyboard);
+                message.setReplyMarkup(keyboardMarkup);
+
+                return message;
+            }
+        }
+
+        category_id = BotService.getInstance().getCatIdByName(message_text);
+
+        if(category_id!=0) {
+            List<String> services = BotService.getInstance().getServicesByCatId(category_id);
+            if(services!=null) {
+                for (String service : services) {
+                    row.add(EmojiParser.parseToUnicode(service));
+                    keyboard.add(row);
+                    row = new KeyboardRow();
+                }
+                row.add(EmojiParser.parseToUnicode(":house: Вернуться в меню"));
+                keyboard.add(row);
                 userCache.setUsersOrderCat(userId,message_text);
                 keyboardMarkup.setKeyboard(keyboard);
                 message.setReplyMarkup(keyboardMarkup);
@@ -69,9 +106,9 @@ public class MassageHandler {
         }
 
         long service_id = BotService.getInstance().getServiceIdByName(message_text);
-        List<String> options = BotService.getInstance().getOptionsByServiceId(service_id);
-        if(service_id!=0){
 
+        if(service_id!=0){
+            List<String> options = BotService.getInstance().getOptionsByServiceId(service_id);
             if(!options.isEmpty()){
                 for(String option: options){
                     row.add(option);
@@ -113,8 +150,29 @@ public class MassageHandler {
             return message;
         }
 
+        if(message_text.equals(EmojiParser.parseToUnicode(":arrow_left: Назад"))){
+            category_id = BotService.getInstance().getCatIdByName(userCache.getOrdersData(userId).getCategory());
 
-        message.setText("Ошибка");
+            if(category_id!=0) {
+                List<String> subcategories = BotService.getInstance().getSubcatsByCatId(category_id);
+                if(subcategories!=null) {
+                    for (String subcategory : subcategories) {
+                        row.add(subcategory);
+                        keyboard.add(row);
+                        row = new KeyboardRow();
+                    }
+                    row.add(EmojiParser.parseToUnicode(":house: Вернуться в меню"));
+                    keyboard.add(row);
+
+                    keyboardMarkup.setKeyboard(keyboard);
+                    message.setReplyMarkup(keyboardMarkup);
+
+                    return message;
+                }
+            }
+        }
+
+        message.setText(EmojiParser.parseToUnicode(BotService.getInstance().getTextByName("Выбор")));
         return message;
 
     }

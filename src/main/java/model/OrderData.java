@@ -32,6 +32,6 @@ public class OrderData {
 
     @Override
     public String toString() {
-        return "<b>Категория:</b> " + category + "\n" + "<b>Сервис:</b> " + service + "\n" + "<b>Опция:</b> " + option;
+        return "Категория: " + category + "\n" + "Сервис: " + service + "\n" + "Опция: " + option;
     }
 }

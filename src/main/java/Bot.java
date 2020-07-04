@@ -19,8 +19,14 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.sql.Time;
+import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 
 public class Bot extends TelegramLongPollingBot {
@@ -40,24 +46,27 @@ public class Bot extends TelegramLongPollingBot {
         if(update.hasMessage() && update.getMessage().hasText()){
             if(update.getMessage().getText().equals("Назад")){
                 userCache.setUsersBotState(userId,userCache.getPreviousBotState(userId));
-
+            }
+            if(update.getMessage().getText().equals(":arrow_left: Назад")){
+                message = massageHandler.handleUpdate(update,userCache);
+                sendMessage(message);
             }
             state = userCache.getUsersBotState(userId);
             if(update.getMessage().getText().equals("Мои заказы")){
 
                List<List<String>> orders = BotService.getInstance().getOrdersByUserId(userId);
 
-               StringBuilder text = new StringBuilder();
                List<String> names = new ArrayList<>();
-               names.add("<b>Номер заказа:</b> ");
-               names.add("<b>Имя:</b> ");
-               names.add("<b>Номер:</b> ");
-               names.add("<b>Адрес:</b> ");
-               names.add("<b>Категория:</b> ");
-               names.add("<b>Сервис:</b> ");
-               names.add("<b>Опция:</b> ");
-               message.setParseMode("HTML");
-               if(orders!=null) {
+                names.add("<b>Номер заказа:</b> ");
+                names.add("<b>Имя:</b> ");
+                names.add("<b>Номер:</b> ");
+                names.add("<b>Адрес:</b> ");
+                names.add("<b>Категория:</b> ");
+                names.add("<b>Сервис:</b> ");
+                names.add("<b>Опция:</b> ");
+                message.setParseMode("HTML");
+                StringBuilder text = new StringBuilder();
+                if(orders!=null) {
                    for (List<String> order : orders) {
                        for (int i = 0; i < order.size(); i++) {
                            text.append(names.get(i)).append(order.get(i)).append("\n");
@@ -68,11 +77,11 @@ public class Bot extends TelegramLongPollingBot {
                        sendMessage(message);
                    }
                    userCache.setUsersBotState(userId, BotState.DELETE);
-                   message.setText("Для отмены заказа введите его номер");
+                   message.setText(BotService.getInstance().getTextByName("Отмена заказа"));
                    message.setReplyMarkup(setMenuKeyboard());
                    sendMessage(message);
                }else {
-                   message.setText("У вас нет текущих заказов");
+                   message.setText(BotService.getInstance().getTextByName("Нет заказов"));
                    message.setReplyMarkup(menuMarkup());
                    sendMessage(message);
 
@@ -87,16 +96,21 @@ public class Bot extends TelegramLongPollingBot {
                 message = massageHandler.handleUpdate(update,userCache);
                 sendMessage(message);
             }else if(state == BotState.DELETE){
-                long id = Long.parseLong(update.getMessage().getText());
+                long id = 0L;
+                try {
+                    id = Long.parseLong(update.getMessage().getText());
+                } catch (Exception e) {
+                    message.setText(BotService.getInstance().getTextByName("Некорректный номер заказа"));
+                }
                 String response = removeOrder(id,update);
                 if(response.equals("Order does not exist") || response.equals("")){
-                    message.setText("Упс... Ошибочка. Введите корректный номер заказа.");
+                    message.setText(BotService.getInstance().getTextByName("Некорректный номер заказа"));
                 }else{
-                    message.setText("Заказ успешно отменен!");
+                    message.setText(BotService.getInstance().getTextByName("Успешно отменен"));
                 }
                 sendMessage(message);
             }else if(state == BotState.VIDEO){
-                message.setText("Пожалуйста, отправьте видео.");
+                message.setText(BotService.getInstance().getTextByName("Отправьте видео"));
                 sendMessage(message);
             }
             else if(state == BotState.ADDITION){
@@ -167,14 +181,19 @@ public class Bot extends TelegramLongPollingBot {
             }
         }
     }
-
     private void sendOrder(Update update) {
+
         HttpClient httpClient = HttpClientBuilder.create().build(); //Use this instead
         int userId = update.getMessage().getFrom().getId();
         try {
 
             HttpPost request = new HttpPost("https://fivesbot3.herokuapp.com/orders/add");
-
+            //HttpPost request = new HttpPost("http://localhost:9966/orders/add");
+//            SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
+//            String time = LocalDateTime.now().toString();
+//            Date parsedDate = dateFormat.parse(time);
+//            Timestamp timestamp = new java.sql.Timestamp(parsedDate.getTime());
+//            String times = timestamp.toString();
             StringEntity params =new StringEntity("{\"name\":\"" + userCache.getUsersData(userId).getName() + "\"," +
                     "\"address\":\"" + userCache.getUsersData(userId).getAddress() + "\"," +
                     "\"phoneNumber\":\"" + userCache.getUsersData(userId).getNumber() + "\"," +
@@ -216,34 +235,39 @@ public class Bot extends TelegramLongPollingBot {
     }
 
     private void processInfo(Update update) {
-        int userId = update.getMessage().getFrom().getId();
-        SendVideo message = new SendVideo().setChatId(update.getMessage().getChatId()).setParseMode("HTML");
-        message.setVideo(userCache.getUsersData(userId).getVideo_id());
-        SendVoice audio = new SendVoice().setChatId(update.getMessage().getChatId()).setVoice(userCache.getUsersData(userId).getAddition());
-        audio.setCaption(userCache.getOrdersData(userId).toString() + "\n" + userCache.getUsersData(userId).toString()).setParseMode("HTML");
-        message.setCaption(userCache.getOrdersData(userId).toString() + "\n" + userCache.getUsersData(userId).toString()).setParseMode("HTML");
+        List<Long> chats = BotService.getInstance().getChats();
+        if(chats!=null) {
+            for (long chat : chats) {
+                int userId = update.getMessage().getFrom().getId();
+                SendVideo message = new SendVideo().setChatId(chat);
+                message.setVideo(userCache.getUsersData(userId).getVideo_id());
+                SendVoice audio = new SendVoice().setChatId(chat).setVoice(userCache.getUsersData(userId).getAddition());
+                //audio.setCaption(userCache.getOrdersData(userId).toString() + "\n" + userCache.getUsersData(userId).toString());
+                message.setCaption(userCache.getOrdersData(userId).toString() + "\n" + userCache.getUsersData(userId).toString());
 
-        int errors = 0;
-        try{
-            if(!userCache.getUsersData(userId).getAddition().equals("Продолжить")) {
-                execute(audio);
+                int errors = 0;
+                try {
+                    if (!userCache.getUsersData(userId).getAddition().equals("Продолжить")) {
+                        execute(audio);
+                    }
+                } catch (Exception e) {
+                    errors++;
+                    e.printStackTrace();
+                }
+                try {
+                    if (errors == 1) {
+                        message.setCaption("Проблема: " + userCache.getUsersData(userId).getAddition() + "\n" + userCache.getOrdersData(userId).toString() + "\n" + userCache.getUsersData(userId).toString()).setParseMode("HTML");
+                        execute(message);
+                    } else {
+                        execute(message);
+                    }
+
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+
             }
-        } catch (Exception e){
-            errors++;
-            e.printStackTrace();
         }
-        try {
-            if(errors==1){
-                message.setCaption("Проблема: " + userCache.getUsersData(userId).getAddition() + "\n" +  userCache.getOrdersData(userId).toString() + "\n" + userCache.getUsersData(userId).toString()).setParseMode("HTML");
-                execute(message);
-            }else {
-                execute(message);
-            }
-
-        }catch (Exception e){
-            e.printStackTrace();
-        }
-
     }
     public ReplyKeyboardMarkup keyboardMarkupSettings() {
         ReplyKeyboardMarkup keyboardMarkup = new ReplyKeyboardMarkup();
@@ -294,6 +318,7 @@ public class Bot extends TelegramLongPollingBot {
         int userId = update.getMessage().getFrom().getId();
         try {
             String url = "https://fivesbot3.herokuapp.com/orders/delete/userid/" + userId + "/id/" + orderId;
+            //String url = "http://localhost:9966/orders/delete/userid/" + userId + "/id/" + orderId;
 
             URL obj = new URL(url);
             HttpURLConnection connection = (HttpURLConnection) obj.openConnection();
