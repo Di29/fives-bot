@@ -46,7 +46,7 @@ public class MassageHandler {
 
         if(category_id!=0) {
             if(category_id == 1) {
-                message.setText("<b>" + EmojiParser.parseToUnicode(BotService.getInstance().getTextByName("Устранить")) + "</b>").setParseMode("HTML");
+                message.setText(EmojiParser.parseToUnicode(BotService.getInstance().getTextByName("Выбор")) + "\n\n" + "<b>" + EmojiParser.parseToUnicode(BotService.getInstance().getTextByName("Устранить")) + "</b>").setParseMode("HTML");
             }
 
             List<String> subcategories = BotService.getInstance().getSubcatsByCatId(category_id);
@@ -93,8 +93,7 @@ public class MassageHandler {
 
         if(category_id!=0) {
             if(category_id == 1) {
-                message.setText("<b>" + EmojiParser.parseToUnicode(BotService.getInstance().getTextByName("Устранить")) + "</b>").setParseMode("HTML");
-            }
+                message.setText(EmojiParser.parseToUnicode(BotService.getInstance().getTextByName("Выбор")) + "\n\n" + "<b>" + EmojiParser.parseToUnicode(BotService.getInstance().getTextByName("Устранить")) + "</b>").setParseMode("HTML");            }
             List<String> services = BotService.getInstance().getServicesByCatId(category_id);
             if(services!=null) {
                 for (String service : services) {
