@@ -312,11 +312,11 @@ public class Bot extends TelegramLongPollingBot {
 
 
     public String getBotUsername() {
-        return "five_SSSSS_group_bot";
+        return "fivesgroup_bot";
     }
 
     public String getBotToken() {
-        return "1270485631:AAEprV_pyObVzALbjRcgnCXJNkSdOSI4E9c";
+        return "1141031716:AAEhdy7Ft4u7c3YBE0KpBVDB4t5awHKpYBc";
     }
 
     private String removeOrder(long orderId,Update update) {
