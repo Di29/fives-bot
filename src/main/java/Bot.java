@@ -41,10 +41,6 @@ public class Bot extends TelegramLongPollingBot {
             if(update.getMessage().getText().equals("Назад")){
                 userCache.setUsersBotState(userId,userCache.getPreviousBotState(userId));
             }
-            if(update.getMessage().getText().equals(":arrow_left: Назад")){
-                message = massageHandler.handleUpdate(update,userCache);
-                sendMessage(message);
-            }
             state = userCache.getUsersBotState(userId);
             if(update.getMessage().getText().equals("Мои заказы")){
 

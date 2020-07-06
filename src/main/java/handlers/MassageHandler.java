@@ -159,6 +159,7 @@ public class MassageHandler {
             return message;
         }
 
+        message_text = EmojiParser.parseToUnicode(message_text);
         if(message_text.equals(EmojiParser.parseToUnicode(":arrow_left: Назад"))){
             category_id = BotService.getInstance().getCatIdByName(userCache.getOrdersData(userId).getCategory());
 
