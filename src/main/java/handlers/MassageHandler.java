@@ -13,6 +13,7 @@ import services.BotService;
 // TODO: 27.06.2020 Добвить мэп для услуг и юзер айди
 // TODO: 27.06.2020 ЗАКОНЧИТЬ БОТА
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 
@@ -35,7 +36,7 @@ public class MassageHandler {
     private SendMessage handleMessage(Update update,UserCache userCache) {
         int userId = update.getMessage().getFrom().getId();
         SendMessage message = new SendMessage().setChatId(update.getMessage().getChatId());
-        String message_text = update.getMessage().getText();
+        String message_text = EmojiParser.parseToAliases(update.getMessage().getText());
         ReplyKeyboardMarkup keyboardMarkup = keyboardMarkupSettings();
         List<KeyboardRow> keyboard = new ArrayList<>();
         KeyboardRow row = new KeyboardRow();
@@ -139,6 +140,7 @@ public class MassageHandler {
             }else{
                 message.setText(BotService.getInstance().getTextByName("Без видео"));
             }
+            message.setReplyMarkup(setMenuKeyboard());
             userCache.setUsersBotState(userId,BotState.VIDEO);
             return message;
         }
@@ -152,6 +154,7 @@ public class MassageHandler {
             }else{
                 message.setText(BotService.getInstance().getTextByName("Без видео"));
             }
+            message.setReplyMarkup(setMenuKeyboard());
             userCache.setUsersBotState(userId,BotState.VIDEO);
             return message;
         }
@@ -183,6 +186,13 @@ public class MassageHandler {
 
     }
 
+    private ReplyKeyboardMarkup setMenuKeyboard(){
+        ReplyKeyboardMarkup keyboardMarkup = keyboardMarkupSettings();
+        KeyboardRow keyboardRow = new KeyboardRow();
+        keyboardRow.add(EmojiParser.parseToUnicode(":house: Вернуться в меню"));
+        keyboardMarkup.setKeyboard(Collections.singletonList(keyboardRow));
+        return keyboardMarkup;
+    }
 
 
     public ReplyKeyboardMarkup keyboardMarkupSettings() {

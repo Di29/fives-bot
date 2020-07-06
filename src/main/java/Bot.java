@@ -19,14 +19,8 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.sql.Time;
-import java.sql.Timestamp;
-import java.text.SimpleDateFormat;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Date;
 import java.util.List;
 
 public class Bot extends TelegramLongPollingBot {
@@ -69,13 +63,21 @@ public class Bot extends TelegramLongPollingBot {
                 if(orders!=null) {
                    for (List<String> order : orders) {
                        for (int i = 0; i < order.size(); i++) {
-                           text.append(names.get(i)).append(order.get(i)).append("\n");
+                           if (order.get(i).contains(":arrow_down:")) {
+                               String str = order.get(i);
+                               str = str.replace(":arrow_down:", "");
+                               text.append(names.get(i)).append(str).append("\n");
+                           } else {
+                               text.append(names.get(i)).append(order.get(i)).append("\n");
+                           }
+
                        }
 
                        message.setText(String.valueOf(text));
                        text.delete(0, text.capacity() - 1);
                        sendMessage(message);
                    }
+
                    userCache.setUsersBotState(userId, BotState.DELETE);
                    message.setText(BotService.getInstance().getTextByName("Отмена заказа"));
                    message.setReplyMarkup(setMenuKeyboard());
@@ -155,6 +157,10 @@ public class Bot extends TelegramLongPollingBot {
                 message.setReplyMarkup(keyboardMarkup);
                 sendMessage(message);
             }
+            else {
+                message.setText(BotService.getInstance().getTextByName("Отправьте видео"));
+                sendMessage(message);
+            }
         }else if(update.getMessage().hasVideo()){
             if(state == BotState.VIDEO) {
                 String video_id = update.getMessage().getVideo().getFileId();
@@ -179,6 +185,9 @@ public class Bot extends TelegramLongPollingBot {
                 message.setReplyMarkup(keyboardMarkup);
                 sendMessage(message);
             }
+        } else if(update.getMessage().hasDocument()){
+            message.setText(BotService.getInstance().getTextByName("Отправьте видео"));
+            sendMessage(message);
         }
     }
     private void sendOrder(Update update) {
@@ -243,7 +252,7 @@ public class Bot extends TelegramLongPollingBot {
                 message.setVideo(userCache.getUsersData(userId).getVideo_id());
                 SendVoice audio = new SendVoice().setChatId(chat).setVoice(userCache.getUsersData(userId).getAddition());
                 //audio.setCaption(userCache.getOrdersData(userId).toString() + "\n" + userCache.getUsersData(userId).toString());
-                message.setCaption(userCache.getOrdersData(userId).toString() + "\n" + userCache.getUsersData(userId).toString());
+                message.setCaption(userCache.getOrdersData(userId).toString().replace(":arrow_down:", "") + "\n" + userCache.getUsersData(userId).toString());
 
                 int errors = 0;
                 try {
@@ -256,7 +265,7 @@ public class Bot extends TelegramLongPollingBot {
                 }
                 try {
                     if (errors == 1) {
-                        message.setCaption("Проблема: " + userCache.getUsersData(userId).getAddition() + "\n" + userCache.getOrdersData(userId).toString() + "\n" + userCache.getUsersData(userId).toString()).setParseMode("HTML");
+                        message.setCaption("Проблема: " + userCache.getUsersData(userId).getAddition() + "\n" + userCache.getOrdersData(userId).toString().replace(":arrow_down:", "") + "\n" + userCache.getUsersData(userId).toString()).setParseMode("HTML");
                         execute(message);
                     } else {
                         execute(message);
